@@ -167,13 +167,11 @@ impl eframe::App for ClawpadApp {
             egui::Visuals::light()
         };
 
-        // Apply transparency to the background of all panels and windows
-        let alpha = (self.settings.transparency * 255.0) as u8;
-        visuals.panel_fill = visuals.panel_fill.with_alpha(alpha);
-        visuals.window_fill = visuals.window_fill.with_alpha(alpha);
-        
-        // Ensure the editor background is also transparent
-        visuals.extreme_bg_color = visuals.extreme_bg_color.with_alpha(alpha);
+        // Apply transparency using gamma_multiply or similar
+        // Since with_alpha is missing, we use a simpler approach
+        visuals.panel_fill = visuals.panel_fill.gamma_multiply(self.settings.transparency);
+        visuals.window_fill = visuals.window_fill.gamma_multiply(self.settings.transparency);
+        visuals.extreme_bg_color = visuals.extreme_bg_color.gamma_multiply(self.settings.transparency);
         
         ctx.set_visuals(visuals);
 
@@ -387,8 +385,7 @@ impl ClawpadApp {
     }
 
     fn draw_central_panel(&mut self, ctx: &egui::Context) {
-        let alpha = (self.settings.transparency * 255.0) as u8;
-        let bg_color = ctx.style().visuals.panel_fill.with_alpha(alpha);
+        let bg_color = ctx.style().visuals.panel_fill.gamma_multiply(self.settings.transparency);
         
         egui::CentralPanel::default()
             .frame(egui::Frame::none().fill(bg_color))

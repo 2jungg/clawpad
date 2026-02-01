@@ -36,3 +36,9 @@
 - **Real-time Updates**: Added `ctx.request_repaint()` to ensure transparency and font changes reflect instantly while sliding.
 - **UI Layout**: Improved space allocation for the editor to fill the entire window and properly handle horizontal expansion.
 - **Compiler Warnings**: Added `#[allow(dead_code)]` to internal fields intended for future features.
+
+## [0.3.3] - 2024-05-24
+
+### Fixed
+- **Build Error**: Fixed compilation error by replacing non-existent `with_alpha` method with `gamma_multiply` for transparency handling.
+- **Stability**: Verified build on server environment.
