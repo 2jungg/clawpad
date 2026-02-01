@@ -20,3 +20,11 @@
 
 ## [0.2.0] - 2024-05-23
 ... (rest of the file)
+
+## [0.3.1] - 2024-05-24
+
+### Fixed
+- **Syntax Error**: Resolved a mismatched bracket in `document.rs`.
+- **Transparency**: Improved transparency implementation using `linear_multiply` on panel and window backgrounds.
+- **UI Scaling**: Increased default window size to 1400x900 and improved editor area allocation.
+- **Editor Experience**: Enabled horizontal scrolling and increased default row count for the text area.

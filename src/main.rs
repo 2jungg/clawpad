@@ -16,7 +16,7 @@ fn main() -> eframe::Result {
     let settings = Settings::load();
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([1200.0, 800.0])
+            .with_inner_size([1400.0, 900.0])
             .with_title("Clawpad Professional")
             .with_transparent(true),
         ..Default::default()
@@ -159,7 +159,8 @@ impl eframe::App for ClawpadApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // Apply transparency to visuals
         let mut visuals = ctx.style().visuals.clone();
-        visuals.panel_fill = visuals.panel_fill.gamma_multiply(self.settings.transparency);
+        visuals.panel_fill = visuals.panel_fill.linear_multiply(self.settings.transparency);
+        visuals.window_fill = visuals.window_fill.linear_multiply(self.settings.transparency);
         ctx.set_visuals(visuals);
 
         if !self.distraction_free {
@@ -464,7 +465,7 @@ impl ClawpadApp {
             }
         }
 
-        egui::ScrollArea::vertical()
+        egui::ScrollArea::both() // Enable horizontal scroll too
             .auto_shrink([false; 2])
             .show(ui, |ui| {
                 let mut layouter = |ui: &egui::Ui, string: &str, wrap_width: f32| {
@@ -481,6 +482,7 @@ impl ClawpadApp {
                     .font(font_id.clone())
                     .lock_focus(true)
                     .desired_width(f32::INFINITY)
+                    .desired_rows(50) // Increase default rows
                     .frame(false)
                     .layouter(&mut layouter);
                 
@@ -488,12 +490,6 @@ impl ClawpadApp {
 
                 if output.changed() {
                     doc.sync_from_cache();
-                }
-
-                // Draw secondary cursors
-                let _painter = ui.painter();
-                for &_offset in &doc.cursors {
-                    // Visual feedback for secondary cursors (foundation)
                 }
             });
     }
