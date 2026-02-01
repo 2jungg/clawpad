@@ -28,3 +28,11 @@
 - **Transparency**: Improved transparency implementation using `linear_multiply` on panel and window backgrounds.
 - **UI Scaling**: Increased default window size to 1400x900 and improved editor area allocation.
 - **Editor Experience**: Enabled horizontal scrolling and increased default row count for the text area.
+
+## [0.3.2] - 2024-05-24
+
+### Fixed
+- **Transparency Logic**: Re-implemented visuals to use `with_alpha` and explicit frame fills for the central panel.
+- **Real-time Updates**: Added `ctx.request_repaint()` to ensure transparency and font changes reflect instantly while sliding.
+- **UI Layout**: Improved space allocation for the editor to fill the entire window and properly handle horizontal expansion.
+- **Compiler Warnings**: Added `#[allow(dead_code)]` to internal fields intended for future features.

@@ -8,7 +8,8 @@ pub struct Document {
     pub language: String,
     // Buffer for egui::TextEdit
     pub content_cache: String,
-    pub cursors: Vec<usize>, // Byte offsets for extra cursors
+    #[allow(dead_code)]
+    pub cursors: Vec<usize>, 
 }
 
 impl Document {

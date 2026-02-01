@@ -157,10 +157,24 @@ impl ClawpadApp {
 
 impl eframe::App for ClawpadApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        // Apply transparency to visuals
-        let mut visuals = ctx.style().visuals.clone();
-        visuals.panel_fill = visuals.panel_fill.linear_multiply(self.settings.transparency);
-        visuals.window_fill = visuals.window_fill.linear_multiply(self.settings.transparency);
+        // Force redraw to handle real-time transparency/settings changes
+        ctx.request_repaint();
+
+        // Setup base visuals based on theme
+        let mut visuals = if self.settings.theme_dark {
+            egui::Visuals::dark()
+        } else {
+            egui::Visuals::light()
+        };
+
+        // Apply transparency to the background of all panels and windows
+        let alpha = (self.settings.transparency * 255.0) as u8;
+        visuals.panel_fill = visuals.panel_fill.with_alpha(alpha);
+        visuals.window_fill = visuals.window_fill.with_alpha(alpha);
+        
+        // Ensure the editor background is also transparent
+        visuals.extreme_bg_color = visuals.extreme_bg_color.with_alpha(alpha);
+        
         ctx.set_visuals(visuals);
 
         if !self.distraction_free {
@@ -373,33 +387,40 @@ impl ClawpadApp {
     }
 
     fn draw_central_panel(&mut self, ctx: &egui::Context) {
+        let alpha = (self.settings.transparency * 255.0) as u8;
+        let bg_color = ctx.style().visuals.panel_fill.with_alpha(alpha);
+        
         egui::CentralPanel::default()
-            .frame(egui::Frame::none().fill(egui::Color32::TRANSPARENT))
+            .frame(egui::Frame::none().fill(bg_color))
             .show(ctx, |ui| {
-            if self.show_preview && self.active_doc().language == "Markdown" {
-                ui.columns(2, |columns| {
-                    self.draw_editor_with_minimap(&mut columns[0]);
-                    self.draw_preview(&mut columns[1]);
-                });
-            } else {
-                self.draw_editor_with_minimap(ui);
-            }
-        });
+                let available_size = ui.available_size();
+                if self.show_preview && self.active_doc().language == "Markdown" {
+                    ui.columns(2, |columns| {
+                        self.draw_editor_with_minimap(&mut columns[0]);
+                        self.draw_preview(&mut columns[1]);
+                    });
+                } else {
+                    // Use a vertical layout to ensure the editor takes all space
+                    ui.vertical(|ui| {
+                        ui.set_min_size(available_size);
+                        self.draw_editor_with_minimap(ui);
+                    });
+                }
+            });
     }
 
     fn draw_editor_with_minimap(&mut self, ui: &mut egui::Ui) {
+        let available_size = ui.available_size();
         if self.show_minimap {
-            ui.horizontal(|ui| {
-                let editor_width = ui.available_width() - 100.0;
-                let height = ui.available_height();
-                
-                let editor_rect = egui::Rect::from_min_size(ui.cursor().min, egui::vec2(editor_width, height));
-                ui.allocate_new_ui(egui::UiBuilder::new().max_rect(editor_rect), |ui| {
+            let minimap_width = 100.0;
+            let editor_width = (available_size.x - minimap_width - 10.0).max(0.0);
+            
+            ui.horizontal_top(|ui| {
+                ui.allocate_ui(egui::vec2(editor_width, available_size.y), |ui| {
                     self.draw_editor(ui);
                 });
                 
-                let minimap_rect = egui::Rect::from_min_size(ui.cursor().min + egui::vec2(editor_width + 5.0, 0.0), egui::vec2(95.0, height));
-                ui.allocate_new_ui(egui::UiBuilder::new().max_rect(minimap_rect), |ui| {
+                ui.allocate_ui(egui::vec2(minimap_width, available_size.y), |ui| {
                     self.draw_minimap(ui);
                 });
             });
@@ -482,8 +503,8 @@ impl ClawpadApp {
                     .font(font_id.clone())
                     .lock_focus(true)
                     .desired_width(f32::INFINITY)
-                    .desired_rows(50) // Increase default rows
-                    .frame(false)
+                    .desired_rows(50)
+                    .frame(false) // No frame/border
                     .layouter(&mut layouter);
                 
                 let output = ui.add_sized(ui.available_size(), text_edit);
